@@ -23,13 +23,13 @@ setup(
     description='Map Server for Google Earth Engine',
     long_description=read('README.md'),
     url='',
-    author='Rodrigo E. Principe',
-    author_email='fitoprincipe82@gmail.com',
+    author='LDC Data Sciencie and Remote Sensing team (DSRS)',
+    author_email='rodrigo.principe@ldc.com',
     license='MIT',
-    keywords='google earth engine raster image processing gis satelite flask',
+    keywords='google earth engine raster image processing gis satellite flask',
     packages=find_packages(exclude=('docs', 'js')),
     include_package_data=True,
-    install_requires=['flask', 'requests'],
+    install_requires=['flask', 'requests', 'brotli'],
     extras_require={
     'dev': [],
     'docs': [],
@@ -37,7 +37,7 @@ setup(
     },
     entry_points='''
         [console_scripts]
-        gee-servermap=geeservermap.main:run
+        geeservermap=geeservermap.main:run
     ''',
     classifiers=['Programming Language :: Python :: 3',
                  'Programming Language :: Python :: 3.3',

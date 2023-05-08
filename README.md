@@ -10,6 +10,8 @@ Each interface contains:
 ### Map
 The map where each layer will be added
 
+## NOT IMPLEMENTED YET
+
 ### Layers
 A list of layers where you can modify some layer's parameters
 

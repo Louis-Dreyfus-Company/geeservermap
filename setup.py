@@ -23,7 +23,7 @@ setup(
     description='Map Server for Google Earth Engine',
     long_description=read('README.md'),
     url='',
-    author='LDC Data Sciencie and Remote Sensing team (DSRS)',
+    author='LDC Data Science and Remote Sensing team (DSRS)',
     author_email='rodrigo.principe@ldc.com',
     license='MIT',
     keywords='google earth engine raster image processing gis satellite flask',

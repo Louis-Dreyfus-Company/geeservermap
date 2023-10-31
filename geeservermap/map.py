@@ -4,7 +4,7 @@
 import ee
 import requests
 
-from .elements import layers
+from . import layers
 from .exceptions import ServerNotRunning
 from .main import PORT
 

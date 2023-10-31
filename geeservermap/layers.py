@@ -4,7 +4,7 @@ from typing import Union
 
 import ee
 
-from .. import helpers
+from . import helpers
 
 
 class VisParams:

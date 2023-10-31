@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier
+_commit: 0.1.5
+_src_path: gh:12rambau/pypackage
+author_email: remote-sensing@ldc.com
+author_first_name: LDC Research Repository
+author_last_name: ''
+author_orcid: ''
+github_repo_name: geeservermap
+github_user: Louis-Dreyfus-Comany
+project_name: geeservermap
+project_slug: geeservermap
+short_description: Interactive map for Google Earth Engine in python

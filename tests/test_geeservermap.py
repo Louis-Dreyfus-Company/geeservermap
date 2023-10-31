@@ -3,6 +3,6 @@
 import geeservermap
 
 
-def test_hello_world():
-    """Hello world test."""
-    assert geeservermap.Hello().hello_world() == "hello world !"
+def test_author():
+    """Default test to check author exist."""
+    assert geeservermap.__author__ == "LDC Research Repository"

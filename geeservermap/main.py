@@ -1,9 +1,8 @@
-from flask import Flask, render_template, url_for, request, jsonify
 # from dotenv import load_dotenv
 import argparse
-from .async_jobs import asyncgee
 import uuid
-import webbrowser
+
+from flask import Flask, jsonify, render_template, request
 
 MESSAGES = {}
 
@@ -13,43 +12,49 @@ WIDTH = 800
 HEIGHT = 600
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--port', default=PORT, help=f'Port in which the app will run. Defaults to {PORT}')
-parser.add_argument("--width", default=WIDTH, help=f"Width of the map's pane. Defaults to {WIDTH} px")
-parser.add_argument("--height", default=HEIGHT, help=f"Height of the map's pane. Defaults to {HEIGHT} px")
+parser.add_argument(
+    "--port", default=PORT, help=f"Port in which the app will run. Defaults to {PORT}"
+)
+parser.add_argument(
+    "--width", default=WIDTH, help=f"Width of the map's pane. Defaults to {WIDTH} px"
+)
+parser.add_argument(
+    "--height",
+    default=HEIGHT,
+    help=f"Height of the map's pane. Defaults to {HEIGHT} px",
+)
 
 app = Flask(__name__)
 
 
 def register_map(width, height):
-    """Register the index endpoint, allowing the user to pass a height and width"""
+    """Register the index endpoint, allowing the user to pass a height and width."""
+
     @app.route("/")
     def map():
-        return render_template('map.html', width=width, height=height)
+        return render_template("map.html", width=width, height=height)
 
 
-@app.route('/add_layer', methods=['GET'])
+@app.route("/add_layer", methods=["GET"])
 def add_layer():
-    url = request.args.get('url', type=str)
-    name = request.args.get('name', type=str)
-    visible = request.args.get('visible', type=bool)
-    opacity = request.args.get('opacity', type=float)
-    layer = {
-        'url': url, 'name': name, 'visible': visible,
-        'opacity': opacity
-    }
+    url = request.args.get("url", type=str)
+    name = request.args.get("name", type=str)
+    visible = request.args.get("visible", type=bool)
+    opacity = request.args.get("opacity", type=float)
+    layer = {"url": url, "name": name, "visible": visible, "opacity": opacity}
     job_id = uuid.uuid4().hex
     print(job_id)
     MESSAGES[job_id] = layer
-    return jsonify({'job_id': job_id})
+    return jsonify({"job_id": job_id})
 
 
-@app.route('/get_message', methods=['GET'])
+@app.route("/get_message", methods=["GET"])
 def get_message():
-    job_id = request.args.get('id', type=str)
+    job_id = request.args.get("id", type=str)
     return MESSAGES.get(job_id)
 
 
-@app.route('/messages')
+@app.route("/messages")
 def messages():
     return jsonify(MESSAGES)
 

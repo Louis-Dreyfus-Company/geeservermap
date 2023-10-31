@@ -27,11 +27,12 @@ dependencies = [
   "flask",
   "requests",
   "brotli",
+  "earthengine-api",
   "deprecated>=1.2.14"
 ]
 
 [[project.authors]]
-name = "LDC Research Repository "
+name = "LDC Research Repository"
 email = "remote-sensing@ldc.com"
 
 [project.license]
@@ -81,7 +82,6 @@ version_files = [
     "pyproject.toml:version",
     "geeservermap/__init__.py:__version__",
     "docs/conf.py:release",
-    "CITATION.cff:version"
 ]
 
 [tool.pytest.ini_options]

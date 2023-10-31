@@ -1,91 +1,88 @@
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block mapcss %} #map { width: {{ width }}px;
+height: {{ height }}px; padding: 0px; margin: 0px; } {% endblock mapcss %} {%
+block map %}
+<div id="map"></div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+  var messages = {};
 
-{% block mapcss %}
-    #map {
-	  width: {{ width }}px;
-	  height: {{ height }}px;
-	  padding: 0px;
-	  margin: 0px;
+  var map = L.map("map", {
+    zoomControl: true,
+    fullscreenControl: true,
+    loadingControl: true,
+  });
+  map.setView([-25, -60], 3);
+
+  var Esri_WorldImagery = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution:
+        "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
     }
-{% endblock mapcss %}
+  );
 
-{% block map %}
-    <div id="map"></div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-	<script>
-	    var messages = {};
+  var OpenStreetMap = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }
+  );
 
-		var map = L.map('map', {
-		    zoomControl:true,
-		    fullscreenControl:true,
-		    loadingControl: true
-		});
-		map.setView([-25, -60], 3);
+  Esri_WorldImagery.addTo(map);
 
-		var Esri_WorldImagery = L.tileLayer(
-		    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-			attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-		});
+  var baseLayers = {
+    OSM: OpenStreetMap,
+    "ESRI Imagery": Esri_WorldImagery,
+  };
 
-		var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			maxZoom: 19,
-			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-		});
+  var overlays = {};
+  // map's overlays
+  var LayersControl = new L.control.layers(baseLayers, overlays).addTo(map);
 
-		Esri_WorldImagery.addTo(map);
+  function handleError(error) {
+    console.log("ERROR", error);
+  }
 
-		var baseLayers = {
-		    "OSM": OpenStreetMap,
-		    "ESRI Imagery": Esri_WorldImagery
-		};
+  function getNewData(data) {
+    var newdata = {};
+    for (var i in data) {
+      console.log("i in messages", i in messages);
+      if (!(i in messages)) {
+        var d = data[i];
+        console.log("adding..");
+        newdata[i] = d;
+      }
+    }
+    return newdata;
+  }
 
-		var overlays = {};
-		// map's overlays
-		var LayersControl = new L.control.layers(baseLayers, overlays).addTo(map);
+  function handleData(data) {
+    if (JSON.stringify(data) != JSON.stringify(messages)) {
+      console.log(getNewData(data));
+      var newData = getNewData(data);
+      for (var i in newData) {
+        var d = newData[i];
+        var url = d["url"];
+        var name = d["name"];
+        var op = d["opacity"];
+        var layer = L.tileLayer(url, { attribution: "testing" });
+        layer.setOpacity(op);
+        layer.addTo(map);
+        overlays[name] = layer;
+        LayersControl.addOverlay(layer, name);
+      }
+      messages = data;
+    } else {
+      console.log("data = messages");
+    }
+  }
 
-        function handleError(error) {
-            console.log('ERROR', error);
-        }
+  function checkStatus() {
+    jQuery.getJSON("/messages", {}, handleData, handleError);
+  }
 
-        function getNewData(data) {
-            var newdata = {};
-            for (var i in data) {
-                console.log('i in messages', i in messages)
-                if (!(i in messages)) {
-                    var d = data[i];
-                    console.log('adding..');
-                    newdata[i] = d;
-                }
-            }
-            return newdata
-        }
-
-		function handleData(data) {
-		    if (JSON.stringify(data) != JSON.stringify(messages)) {
-		        console.log(getNewData(data));
-		        var newData = getNewData(data);
-		        for (var i in newData) {
-		            var d = newData[i];
-		            var url = d['url']
-		            var name = d['name']
-		            var op = d['opacity']
-		            var layer = L.tileLayer(url, {attribution: 'testing'});
-		            layer.setOpacity(op);
-		            layer.addTo(map);
-		            overlays[name] = layer;
-		            LayersControl.addOverlay(layer, name);
-		        }
-		        messages = data;
-		    } else {
-		        console.log('data = messages');
-		    }
-		}
-
-		function checkStatus() {
-		    jQuery.getJSON('/messages', {}, handleData, handleError)
-		}
-
-		setInterval(checkStatus, 1000);
-
-	</script>	
+  setInterval(checkStatus, 1000);
+</script>
 {% endblock map %}

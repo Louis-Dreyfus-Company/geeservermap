@@ -1,4 +1,4 @@
-"""TODO Missing docstring."""
+"""The different layer types that can be added to the map."""
 
 from typing import Union
 
@@ -10,6 +10,30 @@ from . import helpers
 class VisParams:
     """Visualization parameters to apply in a layer."""
 
+    bands: list
+    "The bands to use in the layer."
+
+    min: list
+    "The minimum values to use for each band of the layer."
+
+    max: list
+    "The maximum values to use for each band of the layer."
+
+    palette: list
+    "The palette to use to color the layer."
+
+    gain: list
+    "The gain to apply on each band of the layer."
+
+    bias: list
+    "The bias to apply on each band of the layer."
+
+    gamma: list
+    "The gamma to apply on each band of the layer."
+
+    _bands_len: int
+    "The number of bands in the layer."
+
     def __init__(
         self,
         bands: list,
@@ -20,8 +44,18 @@ class VisParams:
         bias=None,
         gamma=None,
     ):
-        """TODO Missing docstring."""
-        # Bands
+        """Instantiate visualization parameters and format them.
+
+        Args:
+            bands: The bands to use in the layer.
+            min: The minimum values to use for each band of the layer.
+            max: The maximum values to use for each band of the layer.
+            palette: The palette to use to color the layer.
+            gain: The gain to apply on each band of the layer.
+            bias: The bias to apply on each band of the layer.
+            gamma: The gamma to apply on each band of the layer.
+        """
+        # manage the parameters relative to the bands
         self.bands = self.__format_bands(bands)
         self._bands_len = len(self.bands)
         self.min = self.__format_param(min, "min")
@@ -30,26 +64,38 @@ class VisParams:
         self.bias = self.__format_param(bias, "bias")
         self.gamma = self.__format_param(gamma, "gamma")
 
-        # Palette
-        if palette:
-            if len(self.bands) > 1:
-                print("Can't use palette parameter with more than one band")
-                palette = None
-        self.palette = palette
+        # special case of the palette that can only be used if 1 band is set
+        if palette and len(self.bands) > 1:
+            raise ValueError("Can't use palette parameter with more than one band")
+        else:
+            self.palette = palette
 
-    @staticmethod
-    def __format_bands(bands):
-        """TODO Missing docstring."""
+    def __format_bands(self, bands: Union[str, list]) -> list:
+        """Format the bands as a list of values.
+
+        Args:
+            bands: The bands to format.
+
+        Returns:
+            The bands formatted as a list of values.
+        """
         if isinstance(bands, str):
             bands = [bands]
-        if len(bands) < 3:
-            bands = bands[0:1]
-        elif len(bands) > 3:
-            bands = bands[0:3]
+        elif isinstance(bands, (list, tuple)):
+            bands = [bands[0]] if self._bands_len < 3 else bands[0:3]
+
         return bands
 
-    def __format_param(self, value, param):
-        """TODO Missing docstring."""
+    def __format_param(self, value, param: str) -> list:
+        """Convert parameters into a list of values for the parameter.
+
+        Args:
+            value: The value to format.
+            param: The name of the parameter.
+
+        Returns:
+            The value formatted as a list of values.
+        """
         if isinstance(value, (int, float)):
             return [value] * self._bands_len
         elif isinstance(value, str):
@@ -70,12 +116,8 @@ class VisParams:
     def from_image(cls, image, visParams=None):
         """TODO Missing docstring."""
         visParams = visParams or {}
-        if "bands" not in visParams:
-            bands = image.bandNames().getInfo()
-        else:
-            bands = visParams["bands"]
+        bands = visParams.get("bands", image.bandNames().getInfo())
         bands = cls.__format_bands(bands)
-        visParams["bands"] = bands
 
         # Min and max
         btypes = None
@@ -119,17 +161,11 @@ class MapLayer:
     def __init__(self, url, opacity, visible, attribution=ATTR):
         """TODO Missing docstring."""
         self.url = url
-        if opacity > 1:
-            print("opacity cannot be greater than 1, setting to 1")
-            opacity = 1
-        elif opacity < 0:
-            print("opacity cannot be less than 0, setting to 0")
-            opacity = 0
-        self.opacity = opacity
+        self.opacity = max(min(opacity, 1), 0)
         self.visible = visible
         self.attribution = attribution
 
-    def info(self):
+    def info(self) -> dict:
         """Get the message to send to the backend."""
         return {
             "url": self.url,

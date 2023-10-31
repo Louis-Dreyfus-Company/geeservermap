@@ -1,48 +1,64 @@
-"""TODO Missing docstring."""
+"""The Async class is used to manage async flask jobs."""
 
 import atexit
 import time
 import uuid
 from contextlib import suppress
-from copy import deepcopy
 from threading import Thread
+from typing import Optional
 
 
 class Async:
-    """TODO Missing docstring."""
+    """The Async class is used to manage async flask jobs."""
 
-    _INTERVAL = 60
-    _TIMEOUT = 300
+    _INTERVAL: int = 60
+    "Interval between cleanup jobs in seconds"
+
+    _TIMEOUT: int = 300
+    "Timeout in seconds"
+
+    _jobs: dict
+    "Dictionary of existing jobs"
+
+    cleanup_running: bool = False
+    "Flag to indicate if the cleanup thread is running"
+
+    cleanup_thread: Optional[Thread] = None
+    "Thread that runs the cleanup job"
 
     def __init__(self):
-        """TODO Missing docstring."""
+        """Init the Async class by setting up the jobs dictionary."""
         self._jobs = {}
-        self.cleanup_running = False
         atexit.register(self._terminate)
 
     def _run_cleanup(self):
-        """TODO Missing docstring."""
+        """Init and Run the cleanup thread."""
         self.cleanup_thread = Thread(target=self._cleanup_timedout_jobs)
         self.cleanup_thread.start()
 
-    # This MUST be called when flask wants to exit otherwise the process will hang for a while
     def _terminate(self):
-        """TODO Missing docstring."""
+        """Method to terminate the jobs on flask exit."""
         self._jobs = None
         with suppress(Exception):
             self.cleanup_thread.join()
 
-    def get_job_result(self, job_id):
-        """TODO Missing docstring."""
-        if not self._jobs:
-            return None
-        job = self._jobs.get(job_id)
-        if job["state"] in ["finished", "failed"]:
+    def get_job_result(self, job_id: dict) -> Optional[dict]:
+        """Get the result of a job.
+
+        Args:
+            job_id: The job id to get the result from.
+
+        Returns:
+            The job result if the job is finished, else None.
+        """
+        job = self._jobs.get(job_id, None)
+        if job is not None and job["state"] in ["finished", "failed"]:
             self.remove_job(job)
+
         return job
 
-    def _create_job(self):
-        """TODO Missing docstring."""
+    def _create_job(self) -> dict:
+        """Create a new job."""
         job = {
             "id": uuid.uuid4().hex,
             "ready": False,
@@ -55,16 +71,27 @@ class Async:
         if not self.cleanup_running:
             self._run_cleanup()
             self.cleanup_running = True
+
         return job
 
-    def _start_job(self, thread, job):
-        """TODO Missing docstring."""
+    def _start_job(self, thread: Thread, job: dict):
+        """Start a specific job from the thread.
+
+        Args:
+            thread: The thread to start the job from.
+            job: The job to start.
+        """
         job["state"] = "started"
         thread.daemon = True
         thread.start()
 
-    def _finish_job(self, job, result):
-        """TODO Missing docstring."""
+    def _finish_job(self, job: dict, result):
+        """Terminate a specific job.
+
+        Args:
+            job: The job to terminate.
+            result: The result of the job.
+        """
         job["ready"] = True
         job["state"] = "finished"
         if self._is_job_alive(job):
@@ -72,36 +99,42 @@ class Async:
             job["finished"] = time.time()
 
     def remove_job(self, job):
-        """TODO Missing docstring."""
-        if self._jobs and job["id"] in self._jobs:
-            # logger.info(f'removing job {job["id"]}')
-            del self._jobs[job["id"]]
+        """Remove a job from the jobs dictionary.
 
-    def _is_job_alive(self, job):
-        """TODO Missing docstring."""
-        return (
-            self._jobs
-            and job is not None
-            and job["id"] in self._jobs
-            and job["ready"] is not None
-        )
+        Args:
+            job: The job to remove.
+        """
+        self._jobs.pop(job["id"], None)
 
-    # Iterate though jobs every minute and remove the stale ones
+    def _is_job_alive(self, job: Optional[dict]) -> bool:
+        """Check if the job is alive.
+
+        Args:
+            job: The job to check.
+        """
+        exist = job is not None and job["id"] in self._jobs
+        ready = job["ready"] is not None
+
+        return exist and ready
+
     def _cleanup_timedout_jobs(self):
-        """TODO Missing docstring."""
+        """Cleanup timedout jobs.
+
+        This method is run in a thread and iterates through the jobs every minute and removes the stale ones.
+        """
         next_cleanup_time = time.time()
         while self._jobs is not None:
             time.sleep(5)
             now = time.time()
-            proxy = deepcopy(self._jobs)
-            if proxy and now >= next_cleanup_time:
-                for job in proxy.values():
-                    if job["state"] == "finished" and (
-                        job["finished"] + self._TIMEOUT > now
-                    ):
+            if self._jobs and now >= next_cleanup_time:
+                for job in self._jobs.values():
+                    finished = job["state"] == "finished"
+                    timeout = job["finished"] + self._TIMEOUT
+                    if finished and timeout > now:
                         self.remove_job(job)
                 next_cleanup_time = time.time() + self._INTERVAL
         self.cleanup_running = False
 
 
+# init the class as a singleton
 asyncgee = Async()

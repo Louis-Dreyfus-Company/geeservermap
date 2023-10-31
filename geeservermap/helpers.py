@@ -1,139 +1,102 @@
-"""TODO Missing docstring."""
+"""helper methods used throughout the package."""
+
+import ee
+
+MAX_VALUE = {
+    "float": 1,
+    "double": 1,
+    "int8": ((2**8) - 1) / 2,
+    "uint8": (2**8) - 1,
+    "int16": ((2**16) - 1) / 2,
+    "uint16": (2**16) - 1,
+    "int32": ((2**32) - 1) / 2,
+    "uint32": (2**32) - 1,
+    "int64": ((2**64) - 1) / 2,
+}
+"Maximum value for each GEE data type."
 
 
-def visparamsStrToList(params):
+def visparamsStrToList(viz_params: str) -> list:
     """Transform a string formatted as needed by ee.data.getMapId to a list.
 
     Args:
-        params: to convert
+        viz_params: a string describing the visualization parameters
 
     Returns:
-        a list with the params
+        a list of the split parameters from the input string
     """
-    proxy_bands = []
-    bands = params.split(",")
-    for band in bands:
-        proxy_bands.append(band.strip())
-    return proxy_bands
+    return [b.strip() for b in viz_params.split(",")]
 
 
-def visparamsListToStr(params):
+def visparamsListToStr(viz_params: list) -> str:
     """Transform a list to a string formatted as needed by ee.data.getMapId.
 
     Args:
-        params: params to convert
+        viz_params: a list of the visualization parameters
 
     Returns:
         a string formatted as needed by ee.data.getMapId
     """
-    if not params:
-        return params
-    n = len(params)
-    if n == 1:
-        newbands = "{}".format(params[0])
-    elif n == 3:
-        newbands = "{},{},{}".format(params[0], params[1], params[2])
-    else:
-        newbands = "{}".format(params[0])
-    return newbands
+    return ",".join([f"{b}" for b in viz_params])
 
 
-def getImageTile(image, visParams, visible=True):
-    """Get image's tiles uri."""
-    proxy = {}
-    params = visParams or {}
+def getImageTile(image: ee.Image, viz_params: dict = {}, visible=True) -> dict:
+    """Get image's tiles uri.
 
-    # BANDS #############
-    def default_bands(image):
-        bandnames = image.bandNames().getInfo()
-        if len(bandnames) < 3:
-            bands = [bandnames[0]]
-        else:
-            bands = [bandnames[0], bandnames[1], bandnames[2]]
-        return bands
+    Args:
+        image: the image to get the tiles from
+        viz_params: the visualization parameters to apply to the image
+        visible: whether the layer is visible or not
 
-    bands = params.get("bands", default_bands(image))
+    Returns:
+        a dict with the url, attribution, visible and visParams
+    """
+    # init the options of the Image
+    options = {}
 
-    # if the passed bands is a string formatted like required by GEE, get the
-    # list out of it
-    if isinstance(bands, str):
-        bands_list = visparamsStrToList(bands)
-        bands_str = visparamsListToStr(bands_list)
+    # load the bands from the image and overwrite them with the one
+    # from viz_params if passed
 
-    # Transform list to getMapId format
-    # ['b1', 'b2', 'b3'] == 'b1, b2, b3'
-    if isinstance(bands, list):
-        bands_list = bands
-        bands_str = visparamsListToStr(bands)
+    band_names = image.bandNames().getInfo()
+    bands = list([band_names[0]] if len(band_names) < 3 else band_names[0:3])
+    bands = viz_params.get("bands", bands)
+
+    # parse the bands into a list of value and a string
+    band_str = visparamsListToStr(bands) if isinstance(bands, list) else bands
+    band_list = visparamsStrToList(bands) if isinstance(bands, str) else bands
 
     # Set proxy parameters
-    proxy["bands"] = bands_str
+    options["bands"] = band_str
 
-    # MIN #################
-    themin = params.get("min") if "min" in params else "0"
+    # set the min value respecting the format required by GEE
+    min_ = viz_params.get("min", "0")
+    min_ = visparamsListToStr(min_) if isinstance(min_, list) else str(min_)
+    options["min"] = min_
 
-    # if the passed min is a list, convert to the format required by GEE
-    if isinstance(themin, list):
-        themin = visparamsListToStr(themin)
+    # set the max value respecting the format required by GEE
+    band_types = image.select(band_list).bandTypes().values().getInfo()
+    default_max = [MAX_VALUE.get(band_types, 1) for b in band_list]
+    max_ = viz_params.get("max", default_max)
+    max_ = visparamsListToStr(max_) if isinstance(max_, list) else str(max_)
+    options["max"] = max_
 
-    proxy["min"] = themin
-
-    # MAX #################
-    def default_max(image, bands):
-        proxy_maxs = []
-        maxs = {
-            "float": 1,
-            "double": 1,
-            "int8": ((2**8) - 1) / 2,
-            "uint8": (2**8) - 1,
-            "int16": ((2**16) - 1) / 2,
-            "uint16": (2**16) - 1,
-            "int32": ((2**32) - 1) / 2,
-            "uint32": (2**32) - 1,
-            "int64": ((2**64) - 1) / 2,
-        }
-        for band in bands:
-            ty = image.select([band]).getInfo()["bands"][0]["data_type"]
-            try:
-                themax = maxs[ty]
-            except Exception:
-                themax = 1
-            proxy_maxs.append(themax)
-        return proxy_maxs
-
-    themax = params.get("max") if "max" in params else default_max(image, bands_list)
-
-    # if the passed max is a list or the max is computed by the default function
-    # convert to the format required by GEE
-    if isinstance(themax, list):
-        themax = visparamsListToStr(themax)
-
-    proxy["max"] = themax
-
-    # PALETTE
-    if "palette" in params:
-        if len(bands_list) == 1:
-            palette = params.get("palette")
-            if isinstance(palette, str):
-                palette = visparamsStrToList(palette)
-            toformat = "{}," * len(palette)
-            palette = toformat[:-1].format(*palette)
-            proxy["palette"] = palette
-        else:
-            print("Can't use palette parameter with more than one band")
+    # get the palette if passed and if the image has only one band
+    if len(band_list) == 1:
+        palette = viz_params.get("palette", None)
+        palette = visparamsListToStr(palette) if isinstance(palette, list) else palette
+        options["palette"] = palette
+    else:
+        raise ValueError("Can't use palette parameter with more than one band")
 
     # Get the MapID and Token after applying parameters
-    image_info = image.getMapId(proxy)
+    image_info = image.getMapId(options)
     fetcher = image_info["tile_fetcher"]
     tiles = fetcher.url_format
-    attribution = (
-        'Map Data &copy; <a href="https://earthengine.google.com/">'
-        "Google Earth Engine</a> "
-    )
+    attribution = 'Map Data &copy; <a href="https://earthengine.google.com/">Google Earth Engine</a>'
 
     return {
         "url": tiles,
         "attribution": attribution,
         "visible": visible,
-        "visParams": proxy,
+        "visParams": options,
     }

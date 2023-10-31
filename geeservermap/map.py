@@ -1,5 +1,5 @@
-# coding=utf-8
-"""TODO Missing docstring."""
+"""The Map class used to display in the Flask server."""
+from dataclasses import dataclass
 
 import ee
 import requests
@@ -9,27 +9,26 @@ from .exceptions import ServerNotRunning
 from .main import PORT
 
 
+@dataclass
 class Map:
-    """TODO Missing docstring."""
+    """The Map class used to display in the Flask server."""
 
-    def __init__(self, port=PORT, do_async=False):
-        """TODO Missing docstring."""
-        self.port = port
-        self.do_async = do_async
+    port: int = PORT
+    "The port the server is running on."
 
-    def _addImage(self, image, visParams=None, name=None, shown=True, opacity=1):
-        """Add Image Layer to map."""
-        vis = layers.VisParams.from_image(image, visParams)
-        image = layers.Image(image, vis)
-        layer = image.layer(opacity, shown)
-        data = layer.info()
-        data["name"] = name
+    do_async: bool = False
+    "Whether to use async jobs or not."
+
+    def addLayer(self, layer, visParams=None, name=None, shown=True, opacity=1):
+        """Add a layer to the Map."""
+        # exit if layer is not an ee Image
+        if not isinstance(layer, ee.Image):
+            return None
+
+        vis = layers.VisParams.from_image(layer, visParams)
+        layer = layers.Image(layer, vis).layer(opacity, shown)
+        data = {**layer.info(), "name": name}
         try:
             requests.get(f"http://localhost:{self.port}/add_layer", params=data)
         except ConnectionError:
             raise ServerNotRunning(self.port)
-
-    def addLayer(self, layer, visParas=None, name=None, shown=True, opacity=1):
-        """Add a layer to the Map."""
-        if isinstance(layer, ee.Image):
-            self._addImage(layer, visParas, name, shown, opacity)

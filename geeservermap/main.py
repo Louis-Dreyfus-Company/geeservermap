@@ -1,18 +1,23 @@
-"""TODO Missing docstring."""
+"""Setup the flask routes and start the server."""
 
-# from dotenv import load_dotenv
 import argparse
 import uuid
 
 from flask import Flask, jsonify, render_template, request
 
 MESSAGES = {}
+"saved message from the run jobs"
 
-# load_dotenv()  # Load environment variable from .env
 PORT = 8018
-WIDTH = 800
-HEIGHT = 600
+"The default port to run the server on."
 
+WIDTH = 800
+"The default width of the map's pane in pixels."
+
+HEIGHT = 600
+"The default height of the map's pane in pixels."
+
+# parse the parameters from the command line call
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--port", default=PORT, help=f"Port in which the app will run. Defaults to {PORT}"
@@ -26,11 +31,17 @@ parser.add_argument(
     help=f"Height of the map's pane. Defaults to {HEIGHT} px",
 )
 
+# start the Flask application
 app = Flask(__name__)
 
 
-def register_map(width, height):
-    """Register the index endpoint, allowing the user to pass a height and width."""
+def register_map(width: int, height: int):
+    """Register the index endpoint, allowing the user to pass a height and width.
+
+    Args:
+        width: The width of the map's pane in pixels.
+        height: The height of the map's pane in pixels.
+    """
 
     @app.route("/")
     def map():
@@ -39,7 +50,7 @@ def register_map(width, height):
 
 @app.route("/add_layer", methods=["GET"])
 def add_layer():
-    """TODO Missing docstring."""
+    """Add a layer to the map."""
     url = request.args.get("url", type=str)
     name = request.args.get("name", type=str)
     visible = request.args.get("visible", type=bool)
@@ -53,21 +64,20 @@ def add_layer():
 
 @app.route("/get_message", methods=["GET"])
 def get_message():
-    """TODO Missing docstring."""
+    """Get the saved message related to a specific job as a json output."""
     job_id = request.args.get("id", type=str)
     return MESSAGES.get(job_id)
 
 
 @app.route("/messages")
 def messages():
-    """TODO Missing docstring."""
+    """Get all the saved message related as a json output."""
     return jsonify(MESSAGES)
 
 
 def run():
-    """TODO Missing docstring."""
+    """Start the map in the Flask server."""
     args = parser.parse_args()
     port = args.port
     register_map(width=args.width, height=args.height)
-    # webbrowser.open(f'http://localhost:{port}')
     app.run(debug=True, port=port)

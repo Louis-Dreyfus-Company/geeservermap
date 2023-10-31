@@ -26,12 +26,12 @@ geeservermap
     :target: https://pypi.org/project/geeservermap/
     :alt: PyPI version
 
-.. image:: https://img.shields.io/github/actions/workflow/status/Louis-Dreyfus-Comany/geeservermap/unit.yaml?logo=github&logoColor=white
-    :target: https://github.com/Louis-Dreyfus-Comany/geeservermap/actions/workflows/unit.yaml
+.. image:: https://img.shields.io/github/actions/workflow/status/Louis-Dreyfus-Company/geeservermap/unit.yaml?logo=github&logoColor=white
+    :target: https://github.com/Louis-Dreyfus-Company/geeservermap/actions/workflows/unit.yaml
     :alt: build
 
-.. image:: https://img.shields.io/codecov/c/github/Louis-Dreyfus-Comany/geeservermap?logo=codecov&logoColor=white
-    :target: https://codecov.io/gh/Louis-Dreyfus-Comany/geeservermap
+.. image:: https://img.shields.io/codecov/c/github/Louis-Dreyfus-Company/geeservermap?logo=codecov&logoColor=white
+    :target: https://codecov.io/gh/Louis-Dreyfus-Company/geeservermap
     :alt: Test Coverage
 
 .. image:: https://img.shields.io/readthedocs/geeservermap?logo=readthedocs&logoColor=white

@@ -1,0 +1,11 @@
+cff-version: "1.2.0"
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: ""
+  given-names: "LDC Research Repository"
+  orcid: "https://orcid.org/"
+title: "geeservermap"
+version: "0.0.0"
+doi: ""
+date-released: "2023-10-31"
+url: "https://github.com/Louis-Dreyfus-Comany/geeservermap"

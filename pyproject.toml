@@ -1,0 +1,119 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "geeservermap"
+version = "0.0.0"
+description = "Interactive map for Google Earth Engine in python"
+keywords = [
+  "google earth engine",
+  "raster",
+  "image processing",
+  "gis",
+  "flask",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.8"
+dependencies = [
+  "flask",
+  "requests",
+  "brotli",
+  "deprecated>=1.2.14"
+]
+
+[[project.authors]]
+name = "LDC Research Repository "
+email = "remote-sensing@ldc.com"
+
+[project.license]
+text = "MIT"
+
+[project.readme]
+file = "README.rst"
+content-type = "text/x-rst"
+
+[project.urls]
+Homepage = "https://github.com/Louis-Dreyfus-Comany/geeservermap"
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "pytest-sugar",
+  "pytest-cov",
+  "pytest-deadfixtures"
+]
+doc = [
+  "sphinx>=6.2.1",
+  "pydata-sphinx-theme",
+  "sphinx-copybutton",
+  "sphinx-design",
+  "sphinx-autoapi"
+]
+
+[project.scripts]
+geeservermap = "geeservermap.main:run"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["geeservermap"]
+
+[tool.hatch.envs.default]
+dependencies = [
+  "pre-commit",
+  "commitizen",
+  "nox"
+]
+post-install-commands = ["pre-commit install"]
+
+[tool.commitizen]
+tag_format = "v$major.$minor.$patch$prerelease"
+update_changelog_on_bump = false
+version = "0.0.0"
+version_files = [
+    "pyproject.toml:version",
+    "geeservermap/__init__.py:__version__",
+    "docs/conf.py:release",
+    "CITATION.cff:version"
+]
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+
+[tool.ruff]
+ignore-init-module-imports = true
+fix = true
+select = ["E", "F", "W", "I", "D", "RUF"]
+ignore = [
+  "E501",  # line too long | Black take care of it
+  "D212",  # Multi-line docstring | We use D213
+]
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.coverage.run]
+source = ["geeservermap"]
+
+[tool.doc8]
+ignore = ["D001"] # we follow a 1 line = 1 paragraph style
+
+[tool.mypy]
+scripts_are_modules = true
+ignore_missing_imports = true
+install_types = true
+non_interactive = true
+warn_redundant_casts = true
+
+[tool.licensecheck]
+using = "PEP631"

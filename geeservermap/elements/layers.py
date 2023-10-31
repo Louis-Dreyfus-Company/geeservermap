@@ -1,3 +1,5 @@
+"""TODO Missing docstring."""
+
 from typing import Union
 
 import ee
@@ -18,6 +20,7 @@ class VisParams:
         bias=None,
         gamma=None,
     ):
+        """TODO Missing docstring."""
         # Bands
         self.bands = self.__format_bands(bands)
         self._bands_len = len(self.bands)
@@ -36,6 +39,7 @@ class VisParams:
 
     @staticmethod
     def __format_bands(bands):
+        """TODO Missing docstring."""
         if isinstance(bands, str):
             bands = [bands]
         if len(bands) < 3:
@@ -45,6 +49,7 @@ class VisParams:
         return bands
 
     def __format_param(self, value, param):
+        """TODO Missing docstring."""
         if isinstance(value, (int, float)):
             return [value] * self._bands_len
         elif isinstance(value, str):
@@ -63,6 +68,7 @@ class VisParams:
 
     @classmethod
     def from_image(cls, image, visParams=None):
+        """TODO Missing docstring."""
         visParams = visParams or {}
         if "bands" not in visParams:
             bands = image.bandNames().getInfo()
@@ -103,12 +109,15 @@ class VisParams:
 
 
 class MapLayer:
+    """TODO Missing docstring."""
+
     ATTR = (
         'Map Data &copy; <a href="https://earthengine.google.com/">'
         "Google Earth Engine</a>"
     )
 
     def __init__(self, url, opacity, visible, attribution=ATTR):
+        """TODO Missing docstring."""
         self.url = url
         if opacity > 1:
             print("opacity cannot be greater than 1, setting to 1")
@@ -131,7 +140,10 @@ class MapLayer:
 
 
 class Image:
+    """TODO Missing docstring."""
+
     def __init__(self, image: ee.Image, visParams: VisParams):
+        """TODO Missing docstring."""
         self.image = image
         self.visParams = visParams
 
@@ -163,8 +175,12 @@ class Image:
 
 
 class Geometry:
+    """TODO Missing docstring."""
+
     def __init__(self, geometry: ee.Geometry):
+        """TODO Missing docstring."""
         self.geometry = geometry
 
     def layer(self, opacity=1, visible=True):
+        """TODO Missing docstring."""
         pass

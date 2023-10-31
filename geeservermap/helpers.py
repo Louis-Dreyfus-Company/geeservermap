@@ -1,10 +1,14 @@
+"""TODO Missing docstring."""
+
+
 def visparamsStrToList(params):
     """Transform a string formatted as needed by ee.data.getMapId to a list.
 
-    :param params: params to convert
-    :type params: str
-    :return: a list with the params
-    :rtype: list
+    Args:
+        params: to convert
+
+    Returns:
+        a list with the params
     """
     proxy_bands = []
     bands = params.split(",")
@@ -14,13 +18,13 @@ def visparamsStrToList(params):
 
 
 def visparamsListToStr(params):
-    """Transform a list to a string formatted as needed by
-        ee.data.getMapId.
+    """Transform a list to a string formatted as needed by ee.data.getMapId.
 
-    :param params: params to convert
-    :type params: list
-    :return: a string formatted as needed by ee.data.getMapId
-    :rtype: str
+    Args:
+        params: params to convert
+
+    Returns:
+        a string formatted as needed by ee.data.getMapId
     """
     if not params:
         return params
@@ -92,7 +96,7 @@ def getImageTile(image, visParams, visible=True):
             ty = image.select([band]).getInfo()["bands"][0]["data_type"]
             try:
                 themax = maxs[ty]
-            except:
+            except Exception:
                 themax = 1
             proxy_maxs.append(themax)
         return proxy_maxs

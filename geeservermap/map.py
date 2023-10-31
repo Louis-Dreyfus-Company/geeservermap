@@ -1,14 +1,19 @@
 # coding=utf-8
+"""TODO Missing docstring."""
+
 import ee
 import requests
 
 from .elements import layers
-from .exceptions import *
+from .exceptions import ServerNotRunning
 from .main import PORT
 
 
 class Map:
+    """TODO Missing docstring."""
+
     def __init__(self, port=PORT, do_async=False):
+        """TODO Missing docstring."""
         self.port = port
         self.do_async = do_async
 

@@ -12,7 +12,7 @@ from datetime import datetime
 project = "geeservermap"
 author = "LDC Research Repository "
 copyright = f"2020-{datetime.now().year}, {author}"
-release = "0.0.0rc1"
+release = "0.0.0rc2"
 
 # -- General configuration -----------------------------------------------------
 extensions = [

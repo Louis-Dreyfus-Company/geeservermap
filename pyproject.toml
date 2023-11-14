@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geeservermap"
-version = "0.0.0"
+version = "0.0.0rc1"
 description = "Interactive map for Google Earth Engine in python"
 keywords = [
   "google earth engine",
@@ -77,7 +77,7 @@ post-install-commands = ["pre-commit install"]
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
 update_changelog_on_bump = false
-version = "0.0.0"
+version = "0.0.0rc1"
 version_files = [
     "pyproject.toml:version",
     "geeservermap/__init__.py:__version__",
